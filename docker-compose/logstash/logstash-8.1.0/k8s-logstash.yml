@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: logstash
+  namespace: default
+  labels:
+    k8s-app: logstash
+spec:
+  selector:
+    matchLabels:
+      k8s-app: logstash
+  template:
+    metadata:
+      labels:
+        k8s-app: logstash
+    spec:
+      terminationGracePeriodSeconds: 30
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: logstash
+        ports:
+        - containerPort: 5044
+          name: logstash
+        image: docker.elastic.co/logstash/logstash:8.1.0
+        volumeMounts:
+        - name: logstashconfig
+          mountPath: /usr/share/logstash/config/
+      volumes:  
+      - name: logstashconfig     
+        hostPath:
+          path: /Users/liuchao58/Mydocker/renrenche/docker-master/docker-compose/logstash/logstash-8.1.0/config/
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  annotations:
+  labels:
+    k8s-app: logstash
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 5044
+    nodePort: 30044
+    protocol: TCP
+    targetPort: 5044
+  selector:
+    k8s-app: logstash
+---

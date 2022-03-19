@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -c
+    kompose.version: 1.24.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: es03
+  name: es03
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: es03
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -c
+        kompose.version: 1.24.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: es03
+    spec:
+      containers:
+        - env:
+            - name: bootstrap.memory_lock
+              value: "true"
+            - name: cluster.initial_master_nodes
+              value: es01,es02,es03
+            - name: cluster.name
+              value: docker-cluster
+            - name: discovery.seed_hosts
+              value: es01,es02
+            - name: node.name
+              value: es03
+            - name: xpack.license.self_generated.type
+              value: basic
+            - name: xpack.security.enabled
+              value: "true"
+            - name: xpack.security.http.ssl.certificate
+              value: certs/es03/es03.crt
+            - name: xpack.security.http.ssl.certificate_authorities
+              value: certs/ca/ca.crt
+            - name: xpack.security.http.ssl.enabled
+              value: "true"
+            - name: xpack.security.http.ssl.key
+              value: certs/es03/es03.key
+            - name: xpack.security.http.ssl.verification_mode
+              value: certificate
+            - name: xpack.security.transport.ssl.certificate
+              value: certs/es03/es03.crt
+            - name: xpack.security.transport.ssl.certificate_authorities
+              value: certs/ca/ca.crt
+            - name: xpack.security.transport.ssl.enabled
+              value: "true"
+            - name: xpack.security.transport.ssl.key
+              value: certs/es03/es03.key
+            - name: xpack.security.transport.ssl.verification_mode
+              value: certificate
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
+          name: es03
+          resources:
+            limits:
+              memory: "1073741824"
+          volumeMounts:
+            - mountPath: /usr/share/elasticsearch/config/certs
+              name: certs
+            - mountPath: /usr/share/elasticsearch/data
+              name: esdata03
+      restartPolicy: Always
+      volumes:
+        - name: certs
+          persistentVolumeClaim:
+            claimName: certs
+        - name: esdata03
+          persistentVolumeClaim:
+            claimName: esdata03
+status: {}

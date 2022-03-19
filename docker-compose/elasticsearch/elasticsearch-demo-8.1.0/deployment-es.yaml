@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet 
+metadata:
+  name: my-elasticsearch
+spec:
+  selector:
+    matchLabels:
+      app: my-elasticsearch  # has to match .spec.template.metadata.labels
+  serviceName: "elasticsearch-svc"  #声明它属于哪个Headless Service.
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: my-elasticsearch  # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+       - name: data-storage
+         persistentVolumeClaim:
+           claimName: my-local-pvc #和之前的PersistentVolumeClaim的name一致
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
+        ports:
+        - containerPort: 9200
+          name: es-cli
+        - containerPort: 9300
+          name: es-iner
+        env:
+        - name: discovery.type
+          value: single-node  
+        - name: http.cors.enabled
+          value: "true"
+        - name: http.cors.allow-origin
+          value: "*"
+        volumeMounts:
+         - mountPath: "/tmp/data"
+           name: data-storage
